@@ -1,18 +1,25 @@
 const React = require('react');
-const { createElement } = React;
+const { createElement, useState } = React;
 const SignUpForm = require('./components/SignUpForm').default;
+const SignIn = require('./components/SignIn').default;
 
 const App = () => {
+    const [isGoogleSignIn, setIsGoogleSignIn] = useState(true);
+
+    const toggleSignInMethod = () => {
+        setIsGoogleSignIn(prev => !prev);
+    };
+
     return createElement(
         'div',
         { className: 'flex flex-col items-center min-h-screen py-8 px-4' },
         createElement(
             'header',
-            { className: 'w-full max-w-4xl flex flex-col items-center mb-8' },
+            { className: 'w-full max-w-4xl flex flex-col items-center mb-2' },
             createElement('img', {
-                src: '/images/logo.svg',
+                src: '/images/GreatIndianWaffleLogo.png',
                 alt: 'Great Indian Waffle Logo',
-                className: 'w-64 md:w-80 mb-4'
+                className: 'w-80 md:w-96 mb-1'
             }),
             createElement(
                 'h1',
@@ -27,8 +34,26 @@ const App = () => {
         ),
         createElement(
             'main',
-            { className: 'w-full max-w-md bg-white rounded-lg shadow-lg p-6 md:p-8 border-t-4 border-waffle-orange' },
-            createElement(SignUpForm, null)
+            { className: `w-full max-w-md bg-white rounded-lg shadow-lg p-6 md:p-8 border-t-4 border-waffle-orange flex flex-col justify-center items-center transition-all duration-500 ${isGoogleSignIn ? 'h-80' : 'h-auto'}` },
+            createElement(
+                'div',
+                { className: `transition-opacity duration-500 ${isGoogleSignIn ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}` },
+                createElement(
+                    'div',
+                    { className: 'flex flex-col items-center' },
+                    createElement(SignIn, null)
+                )
+            ),
+            createElement(
+                'div',
+                { className: `transition-opacity duration-500 ${isGoogleSignIn ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}` },
+                createElement(SignUpForm, null)
+            ),
+            createElement(
+                'button',
+                { className: 'mt-4 text-waffle-brown underline text-center', onClick: toggleSignInMethod },
+                isGoogleSignIn ? 'Switch to Manual Entry' : 'Sign in with Google'
+            )
         ),
         createElement(
             'footer',
@@ -36,7 +61,7 @@ const App = () => {
             createElement(
                 'p',
                 null,
-                '© ' + new Date().getFullYear() + ' Great Indian Waffle. All rights reserved.'
+                ' ' + new Date().getFullYear() + ' Great Indian Waffle. All rights reserved.'
             ),
             createElement(
                 'p',
