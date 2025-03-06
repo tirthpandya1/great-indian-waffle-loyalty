@@ -3,11 +3,13 @@ const { createElement, useState, useEffect } = React;
 const SignUpForm = require('./components/SignUpForm').default;
 const SignIn = require('./components/SignIn').default;
 const LandingPage = require('./components/LandingPage').default;
+const EditProfile = require('./components/EditProfile').default;
 const { onAuthStateChanged, auth, getRedirectResult, signInWithPopup } = require('./firebase');
 const { GoogleAuthProvider } = require('./firebase');
 const { ToastContainer, toast } = require('react-toastify');
 require('react-toastify/dist/ReactToastify.css');
 require('./animations.css');
+const { Routes, Route } = require('react-router-dom');
 
 const App = () => {
     const [isGoogleSignIn, setIsGoogleSignIn] = useState(true);
@@ -92,7 +94,16 @@ const App = () => {
                 'Join our loyalty program today and enjoy exclusive offers, birthday surprises, and special discounts!'
             )
         ),
-        isSignedIn ? createElement(LandingPage, null) : createElement(
+        isSignedIn ? createElement(
+            'main',
+            null,
+            createElement(
+                Routes,
+                null,
+                createElement(Route, { path: '/edit-profile', element: createElement(EditProfile, null) }),
+                createElement(Route, { path: '/', element: createElement(LandingPage, null) })
+            )
+        ) : createElement(
             'main',
             { className: `w-full max-w-md bg-white rounded-lg shadow-lg p-6 md:p-8 border-t-4 border-waffle-orange flex flex-col justify-center items-center transition-all duration-500 ${isGoogleSignIn ? 'h-80' : 'h-auto'}` },
             createElement(

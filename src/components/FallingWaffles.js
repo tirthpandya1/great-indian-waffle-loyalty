@@ -5,9 +5,9 @@ const FallingWaffles = () => {
     const [waffles, setWaffles] = useState([]);
 
     useEffect(() => {
-        // Create initial waffles
+        // Create initial columns
         const initialWaffles = [];
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 2; i++) { // Reduced from 3 to 2 columns
             initialWaffles.push(createWaffle(i));
         }
         setWaffles(initialWaffles);
@@ -15,58 +15,43 @@ const FallingWaffles = () => {
         // Add new waffles periodically
         const interval = setInterval(() => {
             setWaffles(prevWaffles => {
-                // Remove waffles that have been falling for too long
-                const filteredWaffles = prevWaffles.filter(waffle => 
-                    Date.now() - waffle.createdAt < waffle.duration * 1000
-                );
-                
-                // Add a new waffle
-                return [...filteredWaffles, createWaffle(prevWaffles.length)];
+                return prevWaffles.map((_, index) => createWaffle(index));
             });
-        }, 2000);
+        }, 4000); // Increased from 2000ms to 4000ms
 
         return () => clearInterval(interval);
     }, []);
 
     function createWaffle(id) {
-        const size = Math.floor(Math.random() * 30) + 20; // 20-50px
-        const left = Math.floor(Math.random() * 100); // 0-100%
-        const duration = Math.floor(Math.random() * 10) + 8; // 8-18s
-        const delay = Math.floor(Math.random() * 5); // 0-5s
-        const rotation = Math.floor(Math.random() * 360); // 0-360deg
-        const type = Math.random() > 0.5 ? 'round' : 'square';
+        const size = Math.floor(Math.random() * 50) + 50; // Increased size
+        const left = (id * 20) + Math.random() * 10; // Column positioning
+        const type = Math.floor(Math.random() * 3); // Random type
 
         return {
             id,
             size,
             left,
-            duration,
-            delay,
-            rotation,
-            type,
             createdAt: Date.now()
         };
     }
 
     return createElement(
         'div', 
-        { className: 'waffle-container' },
+        { className: 'waffle-container', style: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' } },
         waffles.map(waffle => {
             const style = {
                 width: `${waffle.size}px`,
                 height: `${waffle.size}px`,
-                left: `${waffle.left}%`,
-                animationDuration: `${waffle.duration}s`,
-                animationDelay: `${waffle.delay}s`,
-                transform: `rotate(${waffle.rotation}deg)`,
-                backgroundImage: waffle.type === 'round' 
-                    ? "url('/images/waffle-round.svg')" 
-                    : "url('/images/waffle-square.svg')"
+                backgroundImage: waffle.type === 0 
+                    ? "url('/images/waffle_1.png')" 
+                    : waffle.type === 1 
+                    ? "url('/images/shake.png')" 
+                    : "url('/images/brownie.png')"
             };
             
             return createElement('div', {
                 key: waffle.id,
-                className: 'falling-waffle',
+                className: 'waffle-icon',
                 style: style
             });
         })

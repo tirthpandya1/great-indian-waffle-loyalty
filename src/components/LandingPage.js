@@ -104,6 +104,28 @@ const LandingPage = () => {
         // User profile and rewards section
         createElement(UserProfile),
         
+        // Logout and profile edit buttons
+        createElement(
+            'div',
+            { className: 'flex space-x-4 mt-4' },
+            createElement(
+                'button',
+                {
+                    className: 'bg-waffle-brown text-white px-4 py-2 rounded hover:bg-opacity-80',
+                    onClick: () => auth.signOut() // Handle sign out
+                },
+                'Logout'
+            ),
+            createElement(
+                'button',
+                {
+                    className: 'bg-waffle-brown text-white px-4 py-2 rounded hover:bg-opacity-80',
+                    onClick: () => {/* Navigate to profile edit page */} // Add navigation logic here
+                },
+                'Edit Profile'
+            )
+        ),
+        
         // Footer
         createElement(
             'div',
