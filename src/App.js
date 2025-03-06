@@ -80,7 +80,7 @@ const App = () => {
             createElement(
                 'p',
                 { className: 'mt-1' },
-                'Delicious waffles made with love!'
+                'Taste It! Love It!'
             )
         )
     );

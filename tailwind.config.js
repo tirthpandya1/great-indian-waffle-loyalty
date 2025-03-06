@@ -5,7 +5,13 @@ module.exports = {
     './public/index.html',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'waffle-brown': '#8B4513',
+        'waffle-red': '#A52A2A',
+        'waffle-orange': '#FF8C00'
+      }
+    },
   },
   plugins: [],
 };
