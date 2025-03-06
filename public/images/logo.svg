@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="300" height="187">
+  <rect width="800" height="500" fill="transparent"/>
+  <g transform="translate(180, 100)">
+    <!-- White outline -->
+    <path d="M40,0 H400 Q440,0 440,40 V260 Q440,300 400,300 H40 Q0,300 0,260 V40 Q0,0 40,0 Z" fill="white"/>
+    
+    <!-- GREAT text -->
+    <text x="100" y="100" font-family="Arial, sans-serif" font-weight="bold" font-size="80" fill="#5D4037">GREAT</text>
+    
+    <!-- INDIAN text -->
+    <text x="100" y="180" font-family="Arial, sans-serif" font-weight="bold" font-size="80" fill="#B71C1C">INDIAN</text>
+    
+    <!-- WAFFLE text -->
+    <text x="100" y="260" font-family="Arial, sans-serif" font-weight="bold" font-size="80" fill="#5D4037">WAFFLE</text>
+    
+    <!-- Waffle icon -->
+    <g transform="translate(350, 150)">
+      <rect x="0" y="0" width="100" height="100" rx="5" fill="#FFB74D"/>
+      <line x1="0" y1="33" x2="100" y2="33" stroke="#5D4037" stroke-width="3"/>
+      <line x1="0" y1="66" x2="100" y2="66" stroke="#5D4037" stroke-width="3"/>
+      <line x1="33" y1="0" x2="33" y2="100" stroke="#5D4037" stroke-width="3"/>
+      <line x1="66" y1="0" x2="66" y2="100" stroke="#5D4037" stroke-width="3"/>
+      <!-- Chocolate drip -->
+      <path d="M0,0 Q10,-10 20,0 Q30,-10 40,0 Q50,-10 60,0 Q70,-10 80,0 Q90,-10 100,0 V-30 H0 Z" fill="#5D4037"/>
+    </g>
+    
+    <!-- TM symbol -->
+    <text x="420" y="60" font-family="Arial, sans-serif" font-size="20" fill="#000">TM</text>
+  </g>
+</svg>
