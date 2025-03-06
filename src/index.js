@@ -1,15 +1,15 @@
 const React = require('react');
 const { createElement } = React;
-const ReactDOM = require('react-dom/client');
+const ReactDOM = require('react-dom');
 const App = require('./App').default;
 require('./index.css');
 require('./styles.css');
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
+ReactDOM.render(
     createElement(
         React.StrictMode,
         null,
         createElement(App, null)
-    )
+    ),
+    document.getElementById('root')
 );
