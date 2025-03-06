@@ -1,14 +1,28 @@
 const React = require('react');
-const { createElement, useState } = React;
+const { createElement, useState, useEffect } = React;
 const SignUpForm = require('./components/SignUpForm').default;
 const SignIn = require('./components/SignIn').default;
+const LandingPage = require('./components/LandingPage').default;
+const { onAuthStateChanged, auth } = require('./firebase');
 
 const App = () => {
     const [isGoogleSignIn, setIsGoogleSignIn] = useState(true);
+    const [isSignedIn, setIsSignedIn] = useState(false);
 
     const toggleSignInMethod = () => {
         setIsGoogleSignIn(prev => !prev);
     };
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setIsSignedIn(true);
+            } else {
+                setIsSignedIn(false);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
 
     return createElement(
         'div',
@@ -32,7 +46,7 @@ const App = () => {
                 'Join our loyalty program today and enjoy exclusive offers, birthday surprises, and special discounts!'
             )
         ),
-        createElement(
+        isSignedIn ? createElement(LandingPage, null) : createElement(
             'main',
             { className: `w-full max-w-md bg-white rounded-lg shadow-lg p-6 md:p-8 border-t-4 border-waffle-orange flex flex-col justify-center items-center transition-all duration-500 ${isGoogleSignIn ? 'h-80' : 'h-auto'}` },
             createElement(

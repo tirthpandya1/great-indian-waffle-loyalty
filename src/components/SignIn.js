@@ -1,17 +1,14 @@
 const React = require('react');
 const { createElement } = React;
 const { auth } = require('../firebase');
-const { GoogleAuthProvider, signInWithPopup } = require('firebase/auth');
+const { GoogleAuthProvider, signInWithRedirect } = require('firebase/auth');
 
 const SignIn = () => {
     const provider = new GoogleAuthProvider();
 
     const handleSignIn = async () => {
         try {
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-            console.log('User signed in:', user);
-            // Here you can also redirect the user to the main page or perform other actions
+            await signInWithRedirect(auth, provider);
         } catch (error) {
             console.error('Error during sign in:', error);
         }

@@ -79,7 +79,7 @@ const SignUpForm = () => {
                     disabled: isSubmitting,
                     className: `w-full py-3 px-4 rounded-lg font-medium text-white transition-all ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-waffle-brown hover:bg-waffle-red'}` 
                 }, 
-                isSubmitting ? 'Generating...' : 'Generate My Loyalty QR Code'
+                isSubmitting ? 'Generating...' : 'Sign Up'
             )
         ) : null,
         qrCode && createElement(
