@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'waffle-brown': '#8B4513',
+        'waffle-brown': '#5B3A29',
         'waffle-red': '#A52A2A',
         'waffle-orange': '#FF8C00'
       }
