@@ -5,12 +5,23 @@ const { GoogleAuthProvider, signInWithRedirect } = require('firebase/auth');
 
 const SignIn = () => {
     const provider = new GoogleAuthProvider();
+    
+    // Add scopes for better user profile access
+    provider.addScope('profile');
+    provider.addScope('email');
+    
+    // Set custom parameters
+    provider.setCustomParameters({
+        prompt: 'select_account'
+    });
 
     const handleSignIn = async () => {
         try {
+            console.log('Starting Google sign-in process...');
             await signInWithRedirect(auth, provider);
+            console.log('Redirecting to Google sign-in...');
         } catch (error) {
-            console.error('Error during sign in:', error);
+            console.error('Error during sign in:', error.message, error.stack);
         }
     };
 

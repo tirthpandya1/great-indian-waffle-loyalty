@@ -3,30 +3,76 @@ const { createElement, useState, useEffect } = React;
 const SignUpForm = require('./components/SignUpForm').default;
 const SignIn = require('./components/SignIn').default;
 const LandingPage = require('./components/LandingPage').default;
-const { onAuthStateChanged, auth } = require('./firebase');
+const { onAuthStateChanged, auth, getRedirectResult, signInWithPopup } = require('./firebase');
+const { GoogleAuthProvider } = require('./firebase');
+const { ToastContainer, toast } = require('react-toastify');
+require('react-toastify/dist/ReactToastify.css');
+require('./animations.css');
 
 const App = () => {
     const [isGoogleSignIn, setIsGoogleSignIn] = useState(true);
     const [isSignedIn, setIsSignedIn] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const toggleSignInMethod = () => {
         setIsGoogleSignIn(prev => !prev);
     };
 
+    // Handle sign-in using a popup instead of redirect
+    const handleSignIn = async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+            console.log('Starting Google sign-in process...');
+            await signInWithPopup(auth, provider);
+            console.log('Google sign-in successful.');
+        } catch (error) {
+            console.error('Error during sign in:', error.message, error.stack);
+            toast.error('Authentication failed. Please try again.');
+        }
+    };
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
+            console.log('Auth State Changed:', user); // Log user state
             if (user) {
+                console.log('User is signed in:', user);
                 setIsSignedIn(true);
             } else {
+                console.log('User is signed out.');
                 setIsSignedIn(false);
             }
+            console.log('Current signed-in state:', isSignedIn);
+            setIsLoading(false);
         });
         return () => unsubscribe();
     }, []);
 
+    // Render loading state if authentication is still being processed
+    if (isLoading) {
+        return createElement(
+            'div',
+            { className: 'flex flex-col items-center justify-center min-h-screen py-8 px-4' },
+            createElement(
+                'div',
+                { className: 'animate-pulse text-center' },
+                createElement('img', {
+                    src: '/images/GreatIndianWaffleLogo.png',
+                    alt: 'Great Indian Waffle Logo',
+                    className: 'w-80 md:w-96 mb-4'
+                }),
+                createElement(
+                    'h2',
+                    { className: 'text-xl font-semibold text-waffle-brown' },
+                    'Loading...'
+                )
+            )
+        );
+    }
+
     return createElement(
         'div',
         { className: 'flex flex-col items-center min-h-screen py-8 px-4' },
+        createElement(ToastContainer),
         createElement(
             'header',
             { className: 'w-full max-w-4xl flex flex-col items-center mb-2' },
@@ -55,7 +101,11 @@ const App = () => {
                 createElement(
                     'div',
                     { className: 'flex flex-col items-center' },
-                    createElement(SignIn, null)
+                    createElement(
+                        'button',
+                        { className: 'bg-waffle-orange text-white py-2 px-4 rounded-lg', onClick: handleSignIn },
+                        'Sign in with Google'
+                    )
                 )
             ),
             createElement(

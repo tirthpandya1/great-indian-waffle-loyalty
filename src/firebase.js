@@ -1,5 +1,5 @@
 const { initializeApp } = require('firebase/app');
-const { getAuth, onAuthStateChanged } = require('firebase/auth');
+const { getAuth, onAuthStateChanged, signInWithPopup, getRedirectResult, GoogleAuthProvider } = require('firebase/auth');
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -16,4 +16,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-module.exports = { auth, onAuthStateChanged };
+module.exports = { auth, onAuthStateChanged, signInWithPopup, getRedirectResult, GoogleAuthProvider };

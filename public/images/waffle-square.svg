@@ -1,0 +1,20 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Waffle Base -->
+  <rect x="10" y="10" width="80" height="80" rx="5" fill="#E8B26F" stroke="#C68642" stroke-width="2"/>
+  
+  <!-- Waffle Grid -->
+  <line x1="10" y1="30" x2="90" y2="30" stroke="#C68642" stroke-width="2"/>
+  <line x1="10" y1="50" x2="90" y2="50" stroke="#C68642" stroke-width="2"/>
+  <line x1="10" y1="70" x2="90" y2="70" stroke="#C68642" stroke-width="2"/>
+  
+  <line x1="30" y1="10" x2="30" y2="90" stroke="#C68642" stroke-width="2"/>
+  <line x1="50" y1="10" x2="50" y2="90" stroke="#C68642" stroke-width="2"/>
+  <line x1="70" y1="10" x2="70" y2="90" stroke="#C68642" stroke-width="2"/>
+  
+  <!-- Syrup Drips -->
+  <path d="M20,20 Q25,15 30,20 Q35,15 40,20" fill="none" stroke="#5B3A29" stroke-width="3"/>
+  <path d="M60,60 Q65,55 70,60 Q75,55 80,60" fill="none" stroke="#5B3A29" stroke-width="3"/>
+  
+  <!-- Butter Square -->
+  <rect x="35" y="35" width="30" height="30" fill="#FFEB99" stroke="#FFDA44" stroke-width="1"/>
+</svg>

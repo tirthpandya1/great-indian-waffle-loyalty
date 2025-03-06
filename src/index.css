@@ -2,8 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base styles */
 .App {
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins', Arial, sans-serif;
     text-align: center;
 }
 
@@ -20,4 +21,63 @@ input {
 button {
     padding: 10px 20px;
     cursor: pointer;
+}
+
+/* Waffle animation container */
+.waffle-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Falling waffle styling */
+.falling-waffle {
+    position: absolute;
+    top: -100px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 0;
+    opacity: 0.6;
+    animation: fall linear infinite;
+}
+
+/* Waffle pattern background */
+.waffle-pattern {
+    background-image: repeating-linear-gradient(45deg, rgba(255, 140, 0, 0.05) 0px, rgba(255, 140, 0, 0.05) 2px, transparent 2px, transparent 4px);
+    background-size: 8px 8px;
+}
+
+/* Card hover effects */
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(91, 58, 41, 0.2);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #5B3A29;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #A52A2A;
 }

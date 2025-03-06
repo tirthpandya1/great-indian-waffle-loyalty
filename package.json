@@ -3,8 +3,10 @@
     "firebase": "^11.4.0",
     "qrcode": "^1.5.4",
     "react": "^16.14.0",
+    "react-confetti": "^6.1.0",
     "react-dom": "^16.14.0",
     "react-facebook-login": "^4.1.1",
+    "react-toastify": "^8.0.3",
     "react-twitter-auth": "^0.0.13",
     "tailwindcss": "^3.3.0"
   },
