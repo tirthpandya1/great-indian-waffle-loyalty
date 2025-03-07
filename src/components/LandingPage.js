@@ -1,6 +1,7 @@
 const React = require('react');
 const { createElement, useState, useEffect } = React;
-const ReactConfetti = require('react-confetti');
+// Temporarily disable react-confetti due to compatibility issues with React 19
+// const ReactConfetti = require('react-confetti');
 const FallingWaffles = require('./FallingWaffles').default;
 const UserProfile = require('./UserProfile').default;
 const { auth, onAuthStateChanged } = require('../firebase');
@@ -60,7 +61,8 @@ const LandingPage = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Stop confetti after 5 seconds
+    // Temporarily disable confetti effect due to compatibility issues with React 19
+    /*
     useEffect(() => {
         const timer = setTimeout(() => {
             setShowConfetti(false);
@@ -68,19 +70,22 @@ const LandingPage = () => {
 
         return () => clearTimeout(timer);
     }, []);
+    */
 
     return createElement(
         'div',
         { className: 'flex flex-col items-center min-h-screen bg-gradient-to-b from-white to-orange-50 py-8 px-4 relative overflow-hidden' },
         
-        // Confetti effect
-        showConfetti && createElement(ReactConfetti, {
+        // Temporarily disable confetti effect due to compatibility issues with React 19
+        /*
+        showConfetti && ReactConfetti && createElement(ReactConfetti, {
             width: dimensions.width,
             height: dimensions.height,
             recycle: false,
             numberOfPieces: 500,
             colors: ['#5B3A29', '#A52A2A', '#FF8C00', '#FFD700', '#FFFFFF']
         }),
+        */
         
         // Falling waffles background
         createElement(FallingWaffles),

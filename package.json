@@ -1,15 +1,13 @@
 {
   "dependencies": {
+    "@tailwindcss/postcss": "^4.0.11",
     "firebase": "^11.4.0",
     "qrcode": "^1.5.4",
-    "react": "^16.14.0",
-    "react-confetti": "^6.1.0",
-    "react-dom": "^16.14.0",
-    "react-facebook-login": "^4.1.1",
-    "react-router-dom": "^7.2.0",
-    "react-toastify": "^8.0.3",
-    "react-twitter-auth": "^0.0.13",
-    "tailwindcss": "^3.3.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^6.0.0",
+    "react-toastify": "^11.0.5",
+    "tailwindcss": "^4.0.11"
   },
   "name": "loyalty-program",
   "version": "1.0.0",
@@ -28,8 +26,8 @@
     "@babel/plugin-transform-modules-commonjs": "^7.26.3",
     "@babel/preset-env": "^7.26.9",
     "@babel/preset-react": "^7.26.3",
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.31",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.3",
     "react-scripts": "^5.0.1"
   },
   "browserslist": {

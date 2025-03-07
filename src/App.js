@@ -6,6 +6,7 @@ const LandingPage = require('./components/LandingPage').default;
 const EditProfile = require('./components/EditProfile').default;
 const { onAuthStateChanged, auth, getRedirectResult, signInWithPopup } = require('./firebase');
 const { GoogleAuthProvider } = require('./firebase');
+// Using react-toastify v11.0.5 which should be compatible with React 19
 const { ToastContainer, toast } = require('react-toastify');
 require('react-toastify/dist/ReactToastify.css');
 require('./animations.css');
