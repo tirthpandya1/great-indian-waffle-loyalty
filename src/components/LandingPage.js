@@ -5,8 +5,10 @@ const { createElement, useState, useEffect } = React;
 const FallingWaffles = require('./FallingWaffles').default;
 const UserProfile = require('./UserProfile').default;
 const { auth, onAuthStateChanged } = require('../firebase');
+const { useNavigate } = require('react-router-dom');
 
 const LandingPage = () => {
+    const navigate = useNavigate();
     const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
     const [showConfetti, setShowConfetti] = useState(true);
     const [user, setUser] = useState(auth.currentUser);
@@ -125,7 +127,7 @@ const LandingPage = () => {
                 'button',
                 {
                     className: 'bg-waffle-brown text-white px-4 py-2 rounded hover:bg-opacity-80',
-                    onClick: () => {/* Navigate to profile edit page */} // Add navigation logic here
+                    onClick: () => navigate('/edit-profile') // Navigate to profile edit page
                 },
                 'Edit Profile'
             )
