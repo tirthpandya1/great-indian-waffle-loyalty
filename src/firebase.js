@@ -1,5 +1,7 @@
 const { initializeApp } = require('firebase/app');
-const { getAuth, onAuthStateChanged, signInWithPopup, getRedirectResult, GoogleAuthProvider } = require('firebase/auth');
+const { getAuth, onAuthStateChanged, signInWithPopup, getRedirectResult, GoogleAuthProvider, signInAnonymously } = require('firebase/auth');
+const { getFirestore } = require('firebase/firestore');
+const { getAnalytics, logEvent } = require('firebase/analytics');
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -15,5 +17,42 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-module.exports = { auth, onAuthStateChanged, signInWithPopup, getRedirectResult, GoogleAuthProvider };
+// Initialize Analytics only in browser environment
+let analytics = null;
+try {
+  if (typeof window !== 'undefined') {
+    analytics = getAnalytics(app);
+    console.log('Firebase Analytics initialized successfully');
+    logEvent(analytics, 'app_initialized');
+  }
+} catch (error) {
+  console.error('Failed to initialize Firebase Analytics:', error);
+}
+
+// Debug function for anonymous sign-in as fallback
+const debugSignInAnonymously = async () => {
+  try {
+    console.log('Attempting anonymous sign-in as fallback...');
+    const result = await signInAnonymously(auth);
+    console.log('Anonymous sign-in successful:', result.user);
+    return result.user;
+  } catch (error) {
+    console.error('Anonymous sign-in failed:', error);
+    return null;
+  }
+};
+
+module.exports = { 
+  app, 
+  auth, 
+  db, 
+  analytics, 
+  onAuthStateChanged, 
+  signInWithPopup, 
+  getRedirectResult, 
+  GoogleAuthProvider,
+  debugSignInAnonymously,
+  logEvent
+};

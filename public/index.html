@@ -3,31 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Great Indian Waffle - Loyalty Program</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'waffle-brown': '#5D4037',
-                        'waffle-red': '#B71C1C',
-                        'waffle-orange': '#FFB74D',
-                        'waffle-light': '#FFF8E1'
-                    },
-                    fontFamily: {
-                        'poppins': ['Poppins', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
+    <link rel="icon" href="favicon.ico" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Add preconnect for Firebase domains -->
+    <link rel="preconnect" href="https://firebaseapp.com">
+    <link rel="preconnect" href="https://firebasestorage.app">
+    <link rel="preconnect" href="https://firebaseinstallations.googleapis.com">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #FFF8E1;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%235d4037' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            margin: 0;
+            padding: 0;
         }
         .sign-up-form__input:focus {
             outline: none;
@@ -39,9 +29,178 @@
             background-size: 20px 20px;
             background-color: #FFB74D;
         }
+        #root {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .loading-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #FFF8E1;
+            z-index: 9999;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #5D4037;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #error-display {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,0,0,0.8);
+            color: white;
+            padding: 10px;
+            z-index: 9999;
+            text-align: center;
+        }
+        #debug-panel {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            z-index: 9998;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow: auto;
+        }
     </style>
+    <script>
+        // Create loading indicator
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create loading indicator
+            var loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'loading-indicator';
+            loadingIndicator.id = 'loading-indicator';
+            
+            var spinner = document.createElement('div');
+            spinner.className = 'loading-spinner';
+            loadingIndicator.appendChild(spinner);
+            
+            document.body.appendChild(loadingIndicator);
+            
+            // Create debug panel
+            var debugPanel = document.createElement('div');
+            debugPanel.id = 'debug-panel';
+            document.body.appendChild(debugPanel);
+            
+            // Remove loading indicator after 10 seconds regardless
+            setTimeout(function() {
+                var loader = document.getElementById('loading-indicator');
+                if (loader) {
+                    loader.style.display = 'none';
+                }
+            }, 10000);
+            
+            // Add keyboard shortcut to show debug panel (Ctrl+Shift+D)
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                    var debugPanel = document.getElementById('debug-panel');
+                    if (debugPanel) {
+                        debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+                    }
+                }
+            });
+        });
+
+        // Enhanced error handling for debugging
+        window.addEventListener('error', function(e) {
+            console.error('Global error caught:', e.error || e.message);
+            const errorDisplay = document.getElementById('error-display');
+            if (errorDisplay) {
+                errorDisplay.style.display = 'block';
+                errorDisplay.textContent = 'Error: ' + (e.error ? e.error.message : e.message);
+            }
+            
+            // Add to debug panel
+            addDebugMessage('ERROR', e.error ? e.error.stack || e.error.message : e.message);
+            
+            // Check if it's a resource loading error
+            if (e.target && (e.target.tagName === 'LINK' || e.target.tagName === 'SCRIPT' || e.target.tagName === 'IMG')) {
+                addDebugMessage('RESOURCE ERROR', 'Failed to load: ' + (e.target.src || e.target.href));
+            }
+        }, true);
+        
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+            const errorDisplay = document.getElementById('error-display');
+            if (errorDisplay) {
+                errorDisplay.style.display = 'block';
+                errorDisplay.textContent = 'Promise Error: ' + (e.reason ? e.reason.message || e.reason : 'Unknown error');
+            }
+            
+            // Add to debug panel
+            addDebugMessage('PROMISE REJECTION', e.reason ? e.reason.stack || e.reason.message || e.reason : 'Unknown error');
+        });
+        
+        // Function to add messages to debug panel
+        function addDebugMessage(type, message) {
+            var debugPanel = document.getElementById('debug-panel');
+            if (debugPanel) {
+                var timestamp = new Date().toISOString();
+                var entry = document.createElement('div');
+                entry.innerHTML = '<strong>[' + timestamp + '] ' + type + ':</strong> ' + message;
+                debugPanel.appendChild(entry);
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+        }
+        
+        // Log React render status
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var root = document.getElementById('root');
+                if (root) {
+                    addDebugMessage('RENDER CHECK', 'Root element children count: ' + root.childNodes.length);
+                    if (!root.childNodes.length) {
+                        addDebugMessage('RENDER WARNING', 'No children rendered in root after 3 seconds');
+                        
+                        // Show error display
+                        const errorDisplay = document.getElementById('error-display');
+                        if (errorDisplay) {
+                            errorDisplay.style.display = 'block';
+                            errorDisplay.textContent = 'Warning: App may not have rendered properly. Check console for details.';
+                        }
+                    }
+                }
+            }, 3000);
+        });
+        
+        // Log Firebase initialization
+        window.logFirebaseStatus = function(status, details) {
+            addDebugMessage('FIREBASE', status + (details ? ': ' + JSON.stringify(details) : ''));
+        };
+    </script>
 </head>
 <body class="min-h-screen">
     <div id="root"></div>
+    <div id="error-display"></div>
+    <noscript>
+        <div style="padding: 20px; text-align: center;">
+            <h2>JavaScript Required</h2>
+            <p>This app requires JavaScript to function. Please enable JavaScript in your browser settings and reload the page.</p>
+        </div>
+    </noscript>
 </body>
 </html>

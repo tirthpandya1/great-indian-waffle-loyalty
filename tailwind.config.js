@@ -7,9 +7,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'waffle-brown': '#5B3A29',
-        'waffle-red': '#A52A2A',
-        'waffle-orange': '#FF8C00'
+        'waffle-brown': '#5D4037',
+        'waffle-red': '#B71C1C',
+        'waffle-orange': '#FFB74D',
+        'waffle-light': '#FFF8E1'
+      },
+      fontFamily: {
+        'poppins': ['Poppins', 'sans-serif']
       }
     },
   },

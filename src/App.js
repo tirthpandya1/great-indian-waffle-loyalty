@@ -35,20 +35,57 @@ const App = () => {
     };
 
     useEffect(() => {
+        console.log('Setting up auth state listener...');
+        
+        // Try to get any redirect result first
+        getRedirectResult(auth)
+            .then((result) => {
+                if (result && result.user) {
+                    console.log('Got redirect result, user signed in:', result.user);
+                    setIsSignedIn(true);
+                }
+            })
+            .catch((error) => {
+                console.error('Error getting redirect result:', error.code, error.message);
+            });
+        
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            console.log('Auth State Changed:', user); // Log user state
+            console.log('Auth State Changed:', user ? 'User exists' : 'No user'); // Log user state
             if (user) {
-                console.log('User is signed in:', user);
+                console.log('User is signed in:', {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    isAnonymous: user.isAnonymous
+                });
                 setIsSignedIn(true);
             } else {
                 console.log('User is signed out.');
                 setIsSignedIn(false);
+                
+                // Try anonymous sign-in as fallback if no user is found after 3 seconds
+                const timer = setTimeout(async () => {
+                    if (!isSignedIn && !isLoading) {
+                        console.log('No user detected after timeout, trying anonymous sign-in...');
+                        const { debugSignInAnonymously } = require('./firebase');
+                        await debugSignInAnonymously();
+                    }
+                }, 3000);
+                
+                return () => clearTimeout(timer);
             }
             console.log('Current signed-in state:', isSignedIn);
             setIsLoading(false);
+        }, (error) => {
+            console.error('Auth state change error:', error.code, error.message);
+            setIsLoading(false);
         });
-        return () => unsubscribe();
-    }, []);
+        
+        return () => {
+            console.log('Cleaning up auth state listener');
+            unsubscribe();
+        };
+    }, [isSignedIn]);
 
     // Render loading state if authentication is still being processed
     if (isLoading) {
