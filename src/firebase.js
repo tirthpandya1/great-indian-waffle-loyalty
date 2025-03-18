@@ -58,8 +58,15 @@ const checkFirestoreConnection = async () => {
     const { collection, getDocs, query, limit } = require('firebase/firestore');
     // Try to fetch a single document to test connection
     const testQuery = query(collection(db, 'users'), limit(1));
-    await getDocs(testQuery);
-    console.log('Firestore connection verified successfully');
+    const querySnapshot = await getDocs(testQuery);
+    console.log(`Firestore connection verified successfully. Found ${querySnapshot.size} documents.`);
+    
+    // Log database information
+    console.log('Connected to Firestore database:', {
+      projectId: firebaseConfig.projectId,
+      databaseId: '(default)'
+    });
+    
     return true;
   } catch (error) {
     console.error('Firestore connection test failed:', error);

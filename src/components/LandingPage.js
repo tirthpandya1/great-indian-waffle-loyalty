@@ -111,10 +111,10 @@ const LandingPage = () => {
         // User profile and rewards section
         createElement(UserProfile),
         
-        // Logout and profile edit buttons
+        // Buttons for navigation and logout
         createElement(
             'div',
-            { className: 'flex space-x-4 mt-4' },
+            { className: 'flex flex-wrap justify-center gap-4 mt-4' },
             createElement(
                 'button',
                 {
@@ -130,6 +130,14 @@ const LandingPage = () => {
                     onClick: () => navigate('/edit-profile') // Navigate to profile edit page
                 },
                 'Edit Profile'
+            ),
+            createElement(
+                'button',
+                {
+                    className: 'bg-waffle-orange text-white px-4 py-2 rounded hover:bg-opacity-80',
+                    onClick: () => navigate('/firestore-test') // Navigate to Firestore test page
+                },
+                'Test Firestore Connection'
             )
         ),
         

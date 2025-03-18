@@ -4,6 +4,7 @@ const SignUpForm = require('./components/SignUpForm').default;
 const SignIn = require('./components/SignIn').default;
 const LandingPage = require('./components/LandingPage').default;
 const EditProfile = require('./components/EditProfile').default;
+const FirestoreTest = require('./components/FirestoreTest').default;
 const { onAuthStateChanged, auth, getRedirectResult, signInWithPopup } = require('./firebase');
 const { GoogleAuthProvider } = require('./firebase');
 // Using react-toastify v11.0.5 which should be compatible with React 19
@@ -171,6 +172,7 @@ const App = () => {
                 Routes,
                 null,
                 createElement(Route, { path: '/edit-profile', element: createElement(EditProfile, null) }),
+                createElement(Route, { path: '/firestore-test', element: createElement(FirestoreTest, null) }),
                 createElement(Route, { path: '/', element: createElement(LandingPage, null) })
             )
         ) : createElement(

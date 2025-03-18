@@ -1,8 +1,9 @@
 const React = require('react');
 const { createElement, useState, useEffect } = React;
-const { auth, db } = require('../firebase');
+const { auth, db, storage } = require('../firebase');
 const { updateProfile, updateEmail } = require('firebase/auth');
 const { doc, setDoc, getDoc, enableNetwork, disableNetwork, connectFirestoreEmulator } = require('firebase/firestore');
+const { ref, uploadBytes, getDownloadURL } = require('firebase/storage');
 const { useNavigate } = require('react-router-dom');
 
 const EditProfile = () => {
@@ -62,12 +63,124 @@ const EditProfile = () => {
             try {
                 // Create user data object
                 const userData = {
-                    uid: user.uid,
                     displayName,
                     email,
                     phoneNumber: phone,
-                    updatedAt: new Date().toISOString()
+                    updatedAt: new Date().toISOString(),
+                    photoURL: auth.currentUser.photoURL // Use current photo URL as default
                 };
+                
+                // Handle profile photo upload if a new file is selected
+                const profilePhotoInput = document.getElementById('profile-photo');
+                if (profilePhotoInput && profilePhotoInput.files.length > 0) {
+                    const file = profilePhotoInput.files[0];
+                    if (file) {
+                        try {
+                            console.log('Starting profile photo processing...');
+                            console.log('Original file:', file.name, 'Size:', Math.round(file.size / 1024), 'KB', 'Type:', file.type);
+                            
+                            // Function to create a tiny data URL from an image file
+                            const createTinyDataUrl = async (file, maxSize = 80, quality = 0.3) => {
+                                return new Promise((resolve, reject) => {
+                                    try {
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                            try {
+                                                const img = new Image();
+                                                img.onload = () => {
+                                                    try {
+                                                        console.log('Original dimensions:', img.width, 'x', img.height);
+                                                        
+                                                        // Calculate new dimensions while maintaining aspect ratio
+                                                        let width = img.width;
+                                                        let height = img.height;
+                                                        const aspectRatio = width / height;
+                                                        
+                                                        if (aspectRatio > 1) {
+                                                            // Landscape
+                                                            width = maxSize;
+                                                            height = Math.round(maxSize / aspectRatio);
+                                                        } else {
+                                                            // Portrait or square
+                                                            height = maxSize;
+                                                            width = Math.round(maxSize * aspectRatio);
+                                                        }
+                                                        
+                                                        console.log('Tiny dimensions:', width, 'x', height);
+                                                        
+                                                        // Create canvas and resize
+                                                        const canvas = document.createElement('canvas');
+                                                        canvas.width = width;
+                                                        canvas.height = height;
+                                                        const ctx = canvas.getContext('2d');
+                                                        ctx.fillStyle = '#FFFFFF'; // White background
+                                                        ctx.fillRect(0, 0, width, height);
+                                                        ctx.drawImage(img, 0, 0, width, height);
+                                                        
+                                                        // Get data URL with very low quality
+                                                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                                                        console.log('Data URL length:', dataUrl.length, 'characters');
+                                                        resolve(dataUrl);
+                                                    } catch (canvasError) {
+                                                        console.error('Canvas error:', canvasError);
+                                                        reject(canvasError);
+                                                    }
+                                                };
+                                                img.onerror = (imgError) => {
+                                                    console.error('Image loading error:', imgError);
+                                                    reject(new Error('Failed to load image'));
+                                                };
+                                                img.src = event.target.result;
+                                            } catch (imgError) {
+                                                console.error('Image creation error:', imgError);
+                                                reject(imgError);
+                                            }
+                                        };
+                                        reader.onerror = (readerError) => {
+                                            console.error('FileReader error:', readerError);
+                                            reject(readerError);
+                                        };
+                                        reader.readAsDataURL(file);
+                                    } catch (error) {
+                                        console.error('Data URL creation error:', error);
+                                        reject(error);
+                                    }
+                                });
+                            };
+                            
+                            try {
+                                // Create a tiny data URL (80x80 pixels, 30% quality)
+                                console.log('Creating tiny data URL...');
+                                const dataUrl = await createTinyDataUrl(file);
+                                console.log('Tiny data URL created successfully');
+                                
+                                // Store the data URL in Firestore only
+                                userData.photoURL = dataUrl;
+                                
+                                // For Firebase Auth, use a default avatar URL instead of the data URL
+                                // This avoids the 'URL too long' error
+                                const defaultAvatarUrl = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+                                console.log('Using default avatar URL for auth profile');
+                                
+                                // Update Firebase Auth profile with the default avatar URL
+                                await updateProfile(auth.currentUser, {
+                                    photoURL: defaultAvatarUrl
+                                });
+                                console.log('Auth profile updated with default avatar');
+                                
+                                // Note: The actual photo will be loaded from Firestore when needed
+                                console.log('Photo will be loaded from Firestore when displayed');
+                            } catch (error) {
+                                console.error('Error processing profile photo:', error);
+                                throw new Error(`Failed to process profile photo: ${error.message}`);
+                            }
+                        } catch (error) {
+                            console.error('Error uploading profile photo:', error);
+                            setError('Failed to upload profile photo: ' + error.message);
+                            return;
+                        }
+                    }
+                }
                 
                 // Reference to user document
                 const userRef = doc(db, 'users', user.uid);
@@ -260,7 +373,7 @@ const EditProfile = () => {
                 createElement('label', { className: 'block text-waffle-brown font-medium', htmlFor: 'profilePhoto' }, 'Profile Photo'),
                 createElement('input', {
                     type: 'file',
-                    id: 'profilePhoto',
+                    id: 'profile-photo',
                     accept: 'image/*',
                     onChange: handlePhotoChange,
                     className: 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-waffle-orange transition-all'

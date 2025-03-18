@@ -1,25 +1,168 @@
 const React = require('react');
-const { createElement, useState } = React;
+const { createElement, useState, useEffect } = React;
 const mockUserData = require('../utils/mockUserData');
+const { auth, db } = require('../firebase');
+const { doc, getDoc } = require('firebase/firestore');
 
 const UserProfile = () => {
     const [activeTab, setActiveTab] = useState('points');
-    const { profile, loyalty, coupons, recentTransactions } = mockUserData;
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    
+    // Default data structure similar to mockUserData but with empty/default values
+    const defaultUserData = {
+        profile: {
+            name: '',
+            email: '',
+            avatar: 'https://ui-avatars.com/api/?name=W&background=FF8C00&color=fff',
+            tier: 'Bronze',
+            joinDate: new Date().toISOString()
+        },
+        loyalty: {
+            points: 0,
+            nextReward: 100,
+            progress: 0
+        },
+        coupons: [],
+        recentTransactions: []
+    };
+    
+    // Merge with mock data for development (will be replaced with real data)
+    const { profile, loyalty, coupons, recentTransactions } = userData || mockUserData;
+    
+    useEffect(() => {
+        const fetchUserData = async () => {
+            setLoading(true);
+            const currentUser = auth.currentUser;
+            
+            if (!currentUser) {
+                console.log('No authenticated user found');
+                setUserData(null);
+                setLoading(false);
+                return;
+            }
+            
+            try {
+                // Get user data from Firestore
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                if (userDoc.exists()) {
+                    const firestoreData = userDoc.data();
+                    console.log('Firestore user data:', firestoreData);
+                    
+                    // Create user data object with Firestore data and fallbacks
+                    // Note: We prioritize photoURL from Firestore over the one from Firebase Auth
+                    const userData = {
+                        profile: {
+                            name: currentUser.displayName || firestoreData.displayName || 'Waffle Lover',
+                            email: currentUser.email || firestoreData.email || 'No email provided',
+                            avatar: firestoreData.photoURL || currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'W')}&background=FF8C00&color=fff`,
+                            tier: firestoreData.tier || 'Bronze',
+                            joinDate: firestoreData.createdAt || currentUser.metadata.creationTime || new Date().toISOString()
+                        },
+                        loyalty: {
+                            points: firestoreData.points || 0,
+                            nextReward: 100,
+                            progress: (firestoreData.points || 0) % 100
+                        },
+                        coupons: firestoreData.coupons || [],
+                        recentTransactions: firestoreData.transactions || []
+                    };
+                    
+                    setUserData(userData);
+                } else {
+                    console.log('No user document found in Firestore, using auth data only');
+                    // Create user data object with auth data only
+                    const userData = {
+                        profile: {
+                            name: currentUser.displayName || 'Waffle Lover',
+                            email: currentUser.email || 'No email provided',
+                            avatar: currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'W')}&background=FF8C00&color=fff`,
+                            tier: 'Bronze',
+                            joinDate: currentUser.metadata.creationTime || new Date().toISOString()
+                        },
+                        loyalty: {
+                            points: 0,
+                            nextReward: 100,
+                            progress: 0
+                        },
+                        coupons: [],
+                        recentTransactions: []
+                    };
+                    
+                    setUserData(userData);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                // Fallback to auth data only on error
+                const userData = {
+                    profile: {
+                        name: currentUser.displayName || 'Waffle Lover',
+                        email: currentUser.email || 'No email provided',
+                        avatar: currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'W')}&background=FF8C00&color=fff`,
+                        tier: 'Bronze',
+                        joinDate: currentUser.metadata.creationTime || new Date().toISOString()
+                    },
+                    loyalty: mockUserData.loyalty,
+                    coupons: mockUserData.coupons,
+                    recentTransactions: mockUserData.recentTransactions
+                };
+                
+                setUserData(userData);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchUserData();
+        
+        // Listen for auth state changes to refresh data
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user) {
+                fetchUserData();
+            } else {
+                setUserData(null);
+            }
+        });
+        
+        return () => unsubscribe();
+    }, []);
 
     return createElement(
         'div',
         { className: 'bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl slide-in' },
-        // Profile Header
-        createElement(
+        // Loading state
+        loading && createElement(
             'div',
-            { className: 'flex flex-col md:flex-row items-center md:items-start gap-6 mb-8' },
+            { className: 'flex justify-center items-center py-8' },
             createElement(
                 'div',
-                { className: 'relative' },
+                { className: 'animate-pulse flex flex-col items-center' },
+                createElement('div', { className: 'w-24 h-24 bg-gray-200 rounded-full' }),
+                createElement('div', { className: 'h-4 bg-gray-200 rounded w-48 mt-4' }),
+                createElement('div', { className: 'h-3 bg-gray-200 rounded w-32 mt-2' })
+            )
+        ),
+        
+        // Profile Header (only shown when not loading)
+        !loading && createElement(
+            'div',
+            { className: 'flex flex-col items-center mb-8' },
+            
+            // User avatar and tier
+            createElement(
+                'div',
+                { className: 'relative mb-4' },
                 createElement('img', {
-                    src: profile.avatar,
+                    src: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || 'W')}&background=FF8C00&color=fff`,
                     alt: profile.name,
-                    className: 'w-24 h-24 rounded-full border-4 border-waffle-orange object-cover'
+                    className: 'w-24 h-24 rounded-full border-4 border-waffle-orange object-cover',
+                    onError: (e) => {
+                        // If the data URL fails to load, fall back to a default avatar
+                        e.target.onerror = null;
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || 'W')}&background=FF8C00&color=fff`;
+                    }
                 }),
                 createElement(
                     'div',
@@ -27,9 +170,11 @@ const UserProfile = () => {
                     profile.tier
                 )
             ),
+            
+            // User info
             createElement(
                 'div',
-                { className: 'text-center md:text-left' },
+                { className: 'text-center mb-4' },
                 createElement(
                     'h2',
                     { className: 'text-2xl font-bold text-waffle-brown' },
@@ -46,9 +191,11 @@ const UserProfile = () => {
                     `Member since ${new Date(profile.joinDate).toLocaleDateString()}`
                 )
             ),
+            
+            // Waffle points card (centered)
             createElement(
                 'div',
-                { className: 'ml-auto bg-waffle-orange/10 rounded-lg p-4 pulse-animation' },
+                { className: 'bg-waffle-orange/10 rounded-lg p-6 w-full max-w-sm mx-auto pulse-animation' },
                 createElement(
                     'div',
                     { className: 'text-center' },
@@ -59,23 +206,23 @@ const UserProfile = () => {
                     ),
                     createElement(
                         'h3',
-                        { className: 'text-3xl font-bold text-waffle-brown' },
+                        { className: 'text-4xl font-bold text-waffle-brown mt-2' },
                         loyalty.points
                     ),
                     createElement(
                         'div',
-                        { className: 'w-full bg-gray-200 rounded-full h-2.5 mt-2' },
+                        { className: 'w-full bg-gray-200 rounded-full h-3 mt-3' },
                         createElement(
                             'div',
                             {
-                                className: 'bg-waffle-orange h-2.5 rounded-full',
+                                className: 'bg-waffle-orange h-3 rounded-full transition-all duration-500',
                                 style: { width: `${loyalty.progress}%` }
                             }
                         )
                     ),
                     createElement(
                         'p',
-                        { className: 'text-xs text-gray-600 mt-1' },
+                        { className: 'text-sm text-gray-600 mt-2' },
                         `${loyalty.points}/${loyalty.nextReward} points to next reward`
                     )
                 )
