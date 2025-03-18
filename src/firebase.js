@@ -1,6 +1,6 @@
 const { initializeApp } = require('firebase/app');
 const { getAuth, onAuthStateChanged, signInWithPopup, getRedirectResult, GoogleAuthProvider, signInAnonymously } = require('firebase/auth');
-const { getFirestore } = require('firebase/firestore');
+const { getFirestore, connectFirestoreEmulator } = require('firebase/firestore');
 const { getAnalytics, logEvent } = require('firebase/analytics');
 
 // Your web app's Firebase configuration
@@ -17,7 +17,58 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+// Initialize Firestore with specific settings
 const db = getFirestore(app);
+
+// Set persistence to local for better offline support
+const { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } = require('firebase/firestore');
+
+// Re-initialize Firestore with better caching settings
+try {
+  // Use the initialized app but with better cache settings
+  const firestoreDb = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    })
+  });
+  
+  // Replace the default db with our enhanced version
+  Object.assign(db, firestoreDb);
+  console.log('Enhanced Firestore initialized with persistent cache');
+} catch (error) {
+  console.warn('Could not initialize enhanced Firestore:', error);
+  // Continue with standard db
+}
+
+// Configure Firestore for better reliability
+const { setLogLevel } = require('firebase/firestore');
+
+// Set logging level to debug during development
+try {
+  setLogLevel('debug');
+  console.log('Firestore logging level set to debug');
+} catch (error) {
+  console.warn('Could not set Firestore logging level:', error);
+}
+
+// Helper function to check Firestore connection
+const checkFirestoreConnection = async () => {
+  try {
+    const { collection, getDocs, query, limit } = require('firebase/firestore');
+    // Try to fetch a single document to test connection
+    const testQuery = query(collection(db, 'users'), limit(1));
+    await getDocs(testQuery);
+    console.log('Firestore connection verified successfully');
+    return true;
+  } catch (error) {
+    console.error('Firestore connection test failed:', error);
+    return false;
+  }
+};
+
+// Call this function to verify connection
+checkFirestoreConnection();
 
 // Initialize Analytics only in browser environment
 let analytics = null;
@@ -31,17 +82,18 @@ try {
   console.error('Failed to initialize Firebase Analytics:', error);
 }
 
-// Debug function for anonymous sign-in as fallback
-const debugSignInAnonymously = async () => {
-  try {
-    console.log('Attempting anonymous sign-in as fallback...');
-    const result = await signInAnonymously(auth);
-    console.log('Anonymous sign-in successful:', result.user);
-    return result.user;
-  } catch (error) {
-    console.error('Anonymous sign-in failed:', error);
-    return null;
-  }
+// Function to check if user is authenticated
+const checkAuthState = () => {
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    }, (error) => {
+      console.error('Error checking auth state:', error);
+      unsubscribe();
+      resolve(null);
+    });
+  });
 };
 
 module.exports = { 
@@ -53,6 +105,6 @@ module.exports = {
   signInWithPopup, 
   getRedirectResult, 
   GoogleAuthProvider,
-  debugSignInAnonymously,
+  checkAuthState,
   logEvent
 };

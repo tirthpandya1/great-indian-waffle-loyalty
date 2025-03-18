@@ -23,19 +23,46 @@ const App = () => {
 
     // Handle sign-in using a popup instead of redirect
     const handleSignIn = async () => {
+        setIsLoading(true);
         const provider = new GoogleAuthProvider();
+        // Add scopes for better user data
+        provider.addScope('email');
+        provider.addScope('profile');
+        
         try {
             console.log('Starting Google sign-in process...');
-            await signInWithPopup(auth, provider);
-            console.log('Google sign-in successful.');
+            const result = await signInWithPopup(auth, provider);
+            console.log('Google sign-in successful:', result.user.displayName);
+            toast.success(`Welcome, ${result.user.displayName || 'User'}!`);
+            setIsSignedIn(true);
         } catch (error) {
-            console.error('Error during sign in:', error.message, error.stack);
-            toast.error('Authentication failed. Please try again.');
+            console.error('Error during sign in:', error.code, error.message);
+            
+            // Provide more helpful error messages based on error code
+            if (error.code === 'auth/popup-closed-by-user') {
+                toast.info('Sign-in was cancelled. Please try again when you\'re ready.');
+            } else if (error.code === 'auth/popup-blocked') {
+                toast.error('Sign-in popup was blocked. Please allow popups for this site.');
+            } else {
+                toast.error('Authentication failed: ' + (error.message || 'Unknown error'));
+            }
+        } finally {
+            setIsLoading(false);
         }
     };
 
     useEffect(() => {
         console.log('Setting up auth state listener...');
+        let authTimer = null;
+        
+        // Force loading state to resolve after a maximum time
+        // This prevents the app from being stuck in loading state indefinitely
+        const maxLoadingTime = setTimeout(() => {
+            if (isLoading) {
+                console.log('Forcing loading state to resolve after timeout');
+                setIsLoading(false);
+            }
+        }, 5000);
         
         // Try to get any redirect result first
         getRedirectResult(auth)
@@ -43,14 +70,23 @@ const App = () => {
                 if (result && result.user) {
                     console.log('Got redirect result, user signed in:', result.user);
                     setIsSignedIn(true);
+                    setIsLoading(false);
                 }
             })
             .catch((error) => {
                 console.error('Error getting redirect result:', error.code, error.message);
+                // Continue with auth state change listener even if redirect fails
             });
         
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            console.log('Auth State Changed:', user ? 'User exists' : 'No user'); // Log user state
+            console.log('Auth State Changed:', user ? 'User exists' : 'No user');
+            
+            // Clear any pending timers
+            if (authTimer) {
+                clearTimeout(authTimer);
+                authTimer = null;
+            }
+            
             if (user) {
                 console.log('User is signed in:', {
                     uid: user.uid,
@@ -59,23 +95,17 @@ const App = () => {
                     isAnonymous: user.isAnonymous
                 });
                 setIsSignedIn(true);
+                setIsLoading(false);
             } else {
                 console.log('User is signed out.');
                 setIsSignedIn(false);
                 
-                // Try anonymous sign-in as fallback if no user is found after 3 seconds
-                const timer = setTimeout(async () => {
-                    if (!isSignedIn && !isLoading) {
-                        console.log('No user detected after timeout, trying anonymous sign-in...');
-                        const { debugSignInAnonymously } = require('./firebase');
-                        await debugSignInAnonymously();
-                    }
-                }, 3000);
-                
-                return () => clearTimeout(timer);
+                // Skip anonymous sign-in and just show the sign-in screen
+                authTimer = setTimeout(() => {
+                    console.log('No user detected, showing sign-in screen');
+                    setIsLoading(false);
+                }, 1000);
             }
-            console.log('Current signed-in state:', isSignedIn);
-            setIsLoading(false);
         }, (error) => {
             console.error('Auth state change error:', error.code, error.message);
             setIsLoading(false);
@@ -84,8 +114,10 @@ const App = () => {
         return () => {
             console.log('Cleaning up auth state listener');
             unsubscribe();
+            clearTimeout(maxLoadingTime);
+            if (authTimer) clearTimeout(authTimer);
         };
-    }, [isSignedIn]);
+    }, [isLoading, isSignedIn]);
 
     // Render loading state if authentication is still being processed
     if (isLoading) {
